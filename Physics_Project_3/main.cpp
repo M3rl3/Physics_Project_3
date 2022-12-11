@@ -62,10 +62,13 @@ enum eEditMode
 };
 
 glm::vec3 cameraEye; //loaded from external file
-glm::vec3 cameraTarget = glm::vec3(-75.0f, 2.0f, 0.0f);
+//glm::vec3 cameraTarget = glm::vec3(-75.0f, 2.0f, 0.0f);
+
+// now controlled by mouse!
+glm::vec3 cameraTarget = glm::vec3(0.f, 0.f, -1.f);
 eEditMode theEditMode = MOVING_CAMERA;
 
-float yaw = -90.f;
+float yaw = 0.f;
 float pitch = 0.f;
 float fov = 45.f;
 
@@ -100,7 +103,7 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
         theEditMode = TAKE_CONTROL;
-        cameraTarget = player_mesh->position;
+        //cameraTarget = player_mesh->position;
         cameraEye = player_mesh->position - glm::vec3(20.f, -4.f, 0.f);
     }
     // Wireframe
@@ -261,6 +264,52 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
     }
 }
 
+static void MouseCallBack(GLFWwindow* window, double xposition, double yposition) {
+    if (firstMouse) {
+        lastX = xposition;
+        lastY = yposition;
+        firstMouse = false;
+    }
+
+    float xoffset = xposition - lastX;
+    float yoffset = lastY - yposition;      // reversed since y coordinates go from bottom to up
+    lastX = xposition;
+    lastY = yposition;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    // prevent perspective from getting flipped by capping it
+    if (pitch > 89.f) {
+        pitch = 89.f;
+    }
+    if (pitch < -89.f) {
+        pitch = -89.f;
+    }
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraTarget = glm::normalize(front);
+}
+
+static void ScrollCallBack(GLFWwindow* window, double xoffset, double yoffset) {
+    if (fov >= 1.f && fov <= 45.f) {
+        fov -= yoffset;
+    }
+    if (fov <= 1.f) {
+        fov = 1.f;
+    }
+    if (fov >= 45.f) {
+        fov = 45.f;
+    }
+}
+
 float RandomFloat(float a, float b) {
     float random = ((float)rand()) / (float)RAND_MAX;
     float diff = b - a;
@@ -303,8 +352,16 @@ void Initialize() {
 
     glfwSetWindowAspectRatio(window, 16, 9);
 
-    //key-callback
+    // keyboard callback
     glfwSetKeyCallback(window, KeyCallback);
+
+    // mouse and scroll callback
+    glfwSetCursorPosCallback(window, MouseCallBack);
+    glfwSetScrollCallback(window, ScrollCallBack);
+
+    // capture mouse input
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     glfwSetErrorCallback(ErrorCallback);
 
     glfwMakeContextCurrent(window);
@@ -723,14 +780,15 @@ void Update() {
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    view = glm::lookAt(cameraEye, cameraTarget, upVector);
-    projection = glm::perspective(0.6f, ratio, 0.1f, 10000.f);
+    view = glm::lookAt(cameraEye, cameraEye + cameraTarget, upVector);
+    //projection = glm::perspective(0.6f, ratio, 0.1f, 10000.f);
+    projection = glm::perspective(glm::radians(fov), ratio, 0.1f, 10000.f);
 
     GLint eyeLocationLocation = glGetUniformLocation(shaderID, "eyeLocation");
     glUniform4f(eyeLocationLocation, cameraEye.x, cameraEye.y, cameraEye.z, 1.f);
 
     if (theEditMode == TAKE_CONTROL) {
-        cameraTarget = player_mesh->position;
+        //cameraTarget = player_mesh->position;
         cameraEye = player_mesh->position - glm::vec3(20.f, -4.f, 0.f);
     }
 
