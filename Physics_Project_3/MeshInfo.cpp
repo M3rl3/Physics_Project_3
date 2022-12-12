@@ -25,9 +25,6 @@ void MeshInfo::CopyVertices(sModelDrawInfo model) {
 	unsigned int numVertices = model.numberOfVertices;
 	std::vector <glm::vec3> vertices(numVertices);
 
-	/*this->min = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
-	this->max = glm::vec3(FLT_MIN, FLT_MIN, FLT_MIN);*/
-
 	for (int i = 0; i < numVertices; i++) {
 		vertices[i].x = model.pVertices[i].x;
 		vertices[i].y = model.pVertices[i].y;

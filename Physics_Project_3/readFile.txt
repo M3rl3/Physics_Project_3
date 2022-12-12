@@ -7,3 +7,4 @@
 ../assets/meshes/pyramid.ply
 ../assets/meshes/cube.ply
 ../assets/meshes/bounding_box.ply
+../assets/meshes/wall.ply

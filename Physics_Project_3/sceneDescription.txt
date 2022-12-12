@@ -1,4 +1,4 @@
-36
+40
 
 long_highway 
 position 0.0 -1.0 0.0
@@ -179,3 +179,23 @@ cube6
 position 45.0 2 0.0
 rotation 0.0 0.0 0.0
 scale 4.0
+
+wall
+position -55.0 3.0 -12.0
+rotation 0.0 67.55 0.0
+scale 5.0
+
+wall1
+position -9.0 3.0 12.0
+rotation 0.0 67.55 0.0
+scale 5.0
+
+wall2
+position 24.0 3.0 -12.0
+rotation 0.0 67.55 0.0
+scale 5.0
+
+wall3
+position 55.0 3.0 12.0
+rotation 0.0 67.55 0.0
+scale 5.0

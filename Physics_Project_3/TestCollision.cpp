@@ -226,6 +226,7 @@ bool CastRay(Ray ray, MeshInfo** mesh, std::vector<MeshInfo*> vecCubes) {
                 std::cout << closestMesh->meshName;
             }
         }
+
         *mesh = closestMesh;
     }
     return closestMesh != nullptr;

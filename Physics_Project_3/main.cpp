@@ -351,8 +351,8 @@ void Initialize() {
 
     const char* glsl_version = "#version 420";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWmonitor* currentMonitor = glfwGetPrimaryMonitor();
 
@@ -732,7 +732,7 @@ void Render() {
     cube_mesh->teleport = true;
     meshArray.push_back(cube_mesh);
     cubeMeshes.push_back(cube_mesh);
-    //cube_mesh->CopyVertices(cube_obj);
+    cube_mesh->CopyVertices(cube_obj);
 
     if (!VAOMan->LoadModelIntoVAO("cube1", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -746,7 +746,7 @@ void Render() {
     cube_mesh1->teleport = true;
     meshArray.push_back(cube_mesh1);
     cubeMeshes.push_back(cube_mesh1);
-    //cube_mesh1->vertices = cube_mesh->vertices;
+    cube_mesh1->CopyVertices(cube_obj);
      
     if (!VAOMan->LoadModelIntoVAO("cube2", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -760,7 +760,7 @@ void Render() {
     cube_mesh2->teleport = true;
     meshArray.push_back(cube_mesh2);
     cubeMeshes.push_back(cube_mesh2);
-    //cube_mesh2->vertices = cube_mesh->vertices;
+    cube_mesh2->CopyVertices(cube_obj);
     
     if (!VAOMan->LoadModelIntoVAO("cube3", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -774,7 +774,7 @@ void Render() {
     cube_mesh3->teleport = true;
     meshArray.push_back(cube_mesh3);
     cubeMeshes.push_back(cube_mesh3);
-    //cube_mesh3->vertices = cube_mesh->vertices;
+    cube_mesh3->CopyVertices(cube_obj);
     
     if (!VAOMan->LoadModelIntoVAO("cube4", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -788,7 +788,7 @@ void Render() {
     cube_mesh4->teleport = true;
     meshArray.push_back(cube_mesh4);
     cubeMeshes.push_back(cube_mesh4);
-    //cube_mesh4->vertices = cube_mesh->vertices;
+    cube_mesh4->CopyVertices(cube_obj);
     
     if (!VAOMan->LoadModelIntoVAO("cube5", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -802,7 +802,7 @@ void Render() {
     cube_mesh5->teleport = true;
     meshArray.push_back(cube_mesh5);
     cubeMeshes.push_back(cube_mesh5);
-    //cube_mesh5->vertices = cube_mesh->vertices;
+    cube_mesh5->CopyVertices(cube_obj);
     
     if (!VAOMan->LoadModelIntoVAO("cube6", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -816,7 +816,49 @@ void Render() {
     cube_mesh6->teleport = true;
     meshArray.push_back(cube_mesh6);
     cubeMeshes.push_back(cube_mesh6);
-    //cube_mesh6->vertices = cube_mesh->vertices;
+    cube_mesh6->CopyVertices(cube_obj);
+
+    sModelDrawInfo wall_obj;
+    LoadModel(meshFiles[9], wall_obj);
+    if (!VAOMan->LoadModelIntoVAO("wall", wall_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* wall_mesh = new MeshInfo();
+    wall_mesh->meshName = "wall";
+    wall_mesh->isWireframe = wireFrame;
+    wall_mesh->RGBAColour = glm::vec4(240, 195, 46, 1.f);
+    wall_mesh->useRGBAColour = true;
+    meshArray.push_back(wall_mesh);
+
+    if (!VAOMan->LoadModelIntoVAO("wall1", wall_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* wall_mesh1 = new MeshInfo();
+    wall_mesh1->meshName = "wall1";
+    wall_mesh1->isWireframe = wireFrame;
+    wall_mesh1->RGBAColour = glm::vec4(240, 195, 46, 1.f);
+    wall_mesh1->useRGBAColour = true;
+    meshArray.push_back(wall_mesh1);
+
+    if (!VAOMan->LoadModelIntoVAO("wall2", wall_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* wall_mesh2 = new MeshInfo();
+    wall_mesh2->meshName = "wall2";
+    wall_mesh2->isWireframe = wireFrame;
+    wall_mesh2->RGBAColour = glm::vec4(240, 195, 46, 1.f);
+    wall_mesh2->useRGBAColour = true;
+    meshArray.push_back(wall_mesh2);
+
+    if (!VAOMan->LoadModelIntoVAO("wall3", wall_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* wall_mesh3 = new MeshInfo();
+    wall_mesh3->meshName = "wall3";
+    wall_mesh3->isWireframe = wireFrame;
+    wall_mesh3->RGBAColour = glm::vec4(240, 195, 46, 1.f);
+    wall_mesh3->useRGBAColour = true;
+    meshArray.push_back(wall_mesh3);
 
     // reads scene descripion files for positioning and other info
     ReadSceneDescription();
