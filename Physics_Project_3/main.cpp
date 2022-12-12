@@ -1,7 +1,7 @@
 #include "OpenGL.h"
 #include "MeshInfo.h"
 #include "LoadModel.h"
-#include "AABB.h"
+#include "Primitives.h"
 #include "ParticleAccelerator.h"
 #include "DrawBoundingBox.h"
 #include "TestCollision.h"
@@ -14,6 +14,7 @@
 
 #include "cShaderManager/cShaderManager.h"
 #include "cVAOManager/cVAOManager.h"
+#include "cRenderReticle.h"
 
 #include <iostream>
 #include <sstream>
@@ -28,6 +29,7 @@ GLuint shaderID = 0;
 
 cVAOManager* VAOMan;
 ParticleAccelerator partAcc;
+cRenderReticle crosshair;
 
 sModelDrawInfo player_obj;
 
@@ -39,6 +41,7 @@ AABB boundingBox;
 
 unsigned int readIndex = 0;
 int object_index = 0;
+int elapsed_frames = 0;
 float x, y, z, l = 1.f;
 float speed = 0.f;
 
@@ -47,11 +50,14 @@ bool doOnce = true;
 
 std::vector <std::string> meshFiles;
 std::vector <MeshInfo*> meshArray;
+std::vector <MeshInfo*> cubeMeshes;
 
 void ReadFromFile();
 void ReadSceneDescription();
 void LoadModel(std::string fileName, sModelDrawInfo& plyModel);
 void ManageLights();
+float RandomFloat(float a, float b);
+bool RandomizePositions(MeshInfo* cube);
 
 enum eEditMode
 {
@@ -117,6 +123,16 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
             meshArray[i]->isWireframe = false;
         }
     }
+    if (key == GLFW_KEY_LEFT_ALT) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+    if (key == GLFW_KEY_LEFT_ALT && action == GLFW_RELEASE) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    /* 
+    updates translation of all objects in the scene based on changes made to scene 
+    description files, resets everything if no changes were made
+    */
     if (key == GLFW_KEY_U && action == GLFW_PRESS) {
         ReadSceneDescription();
         player_mesh->particle->position = player_mesh->position;
@@ -210,28 +226,34 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
         break;
         case TAKE_CONTROL: {
             if (key == GLFW_KEY_W) {
-                //player->particle->position.x += 1.f;
+                //player_mesh->particle->position.x += 1.f;
                 partAcc.UpdateStep(glm::vec3(1, 0, 0), 0.1f);
+                //player_mesh->particle->ApplyForce(glm::vec3(1, 0, 0));
             }
             if (key == GLFW_KEY_S) {
                 //player->particle->position.x -= 1.f;
                 partAcc.UpdateStep(glm::vec3(-1, 0, 0), 0.1f);
+                //player_mesh->particle->ApplyForce(glm::vec3(-1, 0, 0));
             }
             if (key == GLFW_KEY_A) {
                 //player->particle->position.z += 1.f;
                 partAcc.UpdateStep(glm::vec3(0, 0, -1), 0.1f);
+                //player_mesh->particle->ApplyForce(glm::vec3(0, 0, -1));
             }
             if (key == GLFW_KEY_D) {
                 //player->particle->position.z -= 1.f;
                 partAcc.UpdateStep(glm::vec3(0, 0, 1), 0.1f);
+                //player_mesh->particle->ApplyForce(glm::vec3(0, 0, 1));
             }
             if (key == GLFW_KEY_Q) {
                 //player->particle->position.y += 1.f;
                 partAcc.UpdateStep(glm::vec3(0, 1, 0), 0.1f);
+                //player_mesh->particle->ApplyForce(glm::vec3(0, -1, 0));
             }
             if (key == GLFW_KEY_E) {
                 //player->particle->position.y -= 1.f;
                 partAcc.UpdateStep(glm::vec3(0, -1, 0), 0.1f);
+                //player_mesh->particle->ApplyForce(glm::vec3(0, 1, 0));
             }
             // Roatation
             if (key == GLFW_KEY_UP) {
@@ -310,13 +332,6 @@ static void ScrollCallBack(GLFWwindow* window, double xoffset, double yoffset) {
     }
 }
 
-float RandomFloat(float a, float b) {
-    float random = ((float)rand()) / (float)RAND_MAX;
-    float diff = b - a;
-    float r = random * diff;
-    return a + r;
-}
-
 void Initialize() {
 
     if (!glfwInit()) {
@@ -372,6 +387,9 @@ void Initialize() {
     }
     glfwSwapInterval(1); //vsync
 
+    // Init imgui for crosshair
+    crosshair.Initialize(window, glsl_version);
+
     x = 0.1f; y = 0.5f; z = 19.f;
 }
 
@@ -383,7 +401,6 @@ void Render() {
 
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
-
 
     //Shader Manager
     cShaderManager* shadyMan = new cShaderManager();
@@ -407,12 +424,13 @@ void Render() {
     shaderID = shadyMan->getIDFromFriendlyName("ShadyProgram");
     glUseProgram(shaderID);
 
+    // Load asset paths from external file
     ReadFromFile();
 
-    //VAO Manager
+    // VAO Manager
     VAOMan = new cVAOManager();
     
-    //Scene
+    // Scene
     sModelDrawInfo long_highway;
     LoadModel(meshFiles[2], long_highway);
     if (!VAOMan->LoadModelIntoVAO("long_highway", long_highway, shaderID)) {
@@ -682,7 +700,7 @@ void Render() {
     player_mesh = new MeshInfo();
     player_mesh->meshName = "player";
     player_mesh->isWireframe = wireFrame;
-    player_mesh->RGBAColour = glm::vec4(25.f, 25.f, 25.f, 1.f);
+    player_mesh->RGBAColour = glm::vec4(25.f, 255.f, 25.f, 1.f);
     player_mesh->useRGBAColour = true;
     player_mesh->drawBBox = true;
     meshArray.push_back(player_mesh);
@@ -696,63 +714,104 @@ void Render() {
     cube_mesh = new MeshInfo();
     cube_mesh->meshName = "cube";
     cube_mesh->isWireframe = wireFrame;
-    cube_mesh->RGBAColour = glm::vec4(25.f, 25.f, 25.f, 1.f);
+    cube_mesh->RGBAColour = glm::vec4(255.f, 25.f, 0.f, 1.f);
     cube_mesh->useRGBAColour = true;
     cube_mesh->drawBBox = true;
+    cube_mesh->teleport = true;
     meshArray.push_back(cube_mesh);
-
+    cubeMeshes.push_back(cube_mesh);
     cube_mesh->CopyVertices(cube_obj);
-    cube_mesh->nIndices = cube_obj.numberOfIndices;
-    cube_mesh->nTriangles = cube_obj.numberOfTriangles;
 
-    /*for (int i = 0; i < asteroid_mesh->indices.size(); i++) {
-        std::cout << "( " << asteroid_mesh->indices[i].x << ", " << asteroid_mesh->indices[i].y << ", " << asteroid_mesh->indices[i].z << " )" << std::endl;
-    }*/
-    //player->boundingBox->center
+    if (!VAOMan->LoadModelIntoVAO("cube1", cube_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* cube_mesh1 = new MeshInfo();
+    cube_mesh1->meshName = "cube1";
+    cube_mesh1->isWireframe = wireFrame;
+    cube_mesh1->RGBAColour = glm::vec4(255.f, 25.f, 0.f, 1.f);
+    cube_mesh1->useRGBAColour = true;
+    cube_mesh1->drawBBox = true;
+    cube_mesh1->teleport = true;
+    meshArray.push_back(cube_mesh1);
+    cubeMeshes.push_back(cube_mesh1);
+    cube_mesh1->vertices = cube_mesh->vertices;
+     
+    if (!VAOMan->LoadModelIntoVAO("cube2", cube_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* cube_mesh2 = new MeshInfo();
+    cube_mesh2->meshName = "cube2";
+    cube_mesh2->isWireframe = wireFrame;
+    cube_mesh2->RGBAColour = glm::vec4(255.f, 25.f, 0.f, 1.f);
+    cube_mesh2->useRGBAColour = true;
+    cube_mesh2->drawBBox = true;
+    cube_mesh2->teleport = true;
+    meshArray.push_back(cube_mesh2);
+    cubeMeshes.push_back(cube_mesh2);
+    cube_mesh2->vertices = cube_mesh->vertices;
+    
+    if (!VAOMan->LoadModelIntoVAO("cube3", cube_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* cube_mesh3 = new MeshInfo();
+    cube_mesh3->meshName = "cube3";
+    cube_mesh3->isWireframe = wireFrame;
+    cube_mesh3->RGBAColour = glm::vec4(255.f, 25.f, 0.f, 1.f);
+    cube_mesh3->useRGBAColour = true;
+    cube_mesh3->drawBBox = true;
+    cube_mesh3->teleport = true;
+    meshArray.push_back(cube_mesh3);
+    cubeMeshes.push_back(cube_mesh3);
+    cube_mesh3->vertices = cube_mesh->vertices;
+    
+    if (!VAOMan->LoadModelIntoVAO("cube4", cube_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* cube_mesh4 = new MeshInfo();
+    cube_mesh4->meshName = "cube4";
+    cube_mesh4->isWireframe = wireFrame;
+    cube_mesh4->RGBAColour = glm::vec4(255.f, 25.f, 0.f, 1.f);
+    cube_mesh4->useRGBAColour = true;
+    cube_mesh4->drawBBox = true;
+    cube_mesh4->teleport = true;
+    meshArray.push_back(cube_mesh4);
+    cubeMeshes.push_back(cube_mesh4);
+    cube_mesh4->vertices = cube_mesh->vertices;
+    
+    if (!VAOMan->LoadModelIntoVAO("cube5", cube_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* cube_mesh5 = new MeshInfo();
+    cube_mesh5->meshName = "cube5";
+    cube_mesh5->isWireframe = wireFrame;
+    cube_mesh5->RGBAColour = glm::vec4(255.f, 25.f, 0.f, 1.f);
+    cube_mesh5->useRGBAColour = true;
+    cube_mesh5->drawBBox = true;
+    cube_mesh5->teleport = true;
+    meshArray.push_back(cube_mesh5);
+    cubeMeshes.push_back(cube_mesh5);
+    cube_mesh5->vertices = cube_mesh->vertices;
+    
+    if (!VAOMan->LoadModelIntoVAO("cube6", cube_obj, shaderID)) {
+        std::cerr << "Could not load model into VAO" << std::endl;
+    }
+    MeshInfo* cube_mesh6 = new MeshInfo();
+    cube_mesh6->meshName = "cube6";
+    cube_mesh6->isWireframe = wireFrame;
+    cube_mesh6->RGBAColour = glm::vec4(255.f, 25.f, 0.f, 1.f);
+    cube_mesh6->useRGBAColour = true;
+    cube_mesh6->drawBBox = true;
+    cube_mesh6->teleport = true;
+    meshArray.push_back(cube_mesh6);
+    cubeMeshes.push_back(cube_mesh6);
+    cube_mesh6->vertices = cube_mesh->vertices;
 
-    //reads scene descripion files for positioning and other info
+    // reads scene descripion files for positioning and other info
     ReadSceneDescription();
 
+    // initialize the particle to player position
     player_mesh->particle = partAcc.InitParticle(player_mesh->position);
     
-    glm::vec3 minPoints = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
-    glm::vec3 maxPoints = glm::vec3(FLT_MIN, FLT_MIN, FLT_MIN);
-
-    std::vector <glm::vec3> vertices;
-    vertices = player_mesh->vertices;
-
-    for (int i = 0; i < vertices.size(); i++) {
-        glm::vec3& vertex = vertices[i];
-
-        if (minPoints.x > vertex.x)
-            minPoints.x = vertex.x;
-        if (minPoints.y > vertex.y)
-            minPoints.y = vertex.y;
-        if (minPoints.z > vertex.z)
-            minPoints.z = vertex.z;
-
-        if (maxPoints.x < vertex.x)
-            maxPoints.x = vertex.x;
-        if (maxPoints.y < vertex.y)
-            maxPoints.y = vertex.y;
-        if (maxPoints.z < vertex.z)
-            maxPoints.z = vertex.z;
-    }
-
-    // Calculate the point halfway between the minPoints, and maxPoints
-    glm::vec3 halfExtents = (maxPoints - minPoints) / 2.f;
-    glm::vec3 centerPoint = minPoints + halfExtents;
-
-    /*player->box.max = maxPoints;      
-    player->box.min = minPoints;      
-    player->box.center = centerPoint; 
-    player->box.extents = halfExtents;*/
-
-    boundingBox.max = maxPoints;
-    boundingBox.min = minPoints;
-    boundingBox.center = centerPoint;
-    boundingBox.extents = halfExtents;
-    int breakpoint = 1;
 }
 
 void Update() {
@@ -789,27 +848,16 @@ void Update() {
 
     if (theEditMode == TAKE_CONTROL) {
         //cameraTarget = player_mesh->position;
-        cameraEye = player_mesh->position - glm::vec3(20.f, -4.f, 0.f);
+        cameraEye = player_mesh->position - glm::vec3(1.f, -4.f, 0.f);
     }
 
-    //activate thrusters
+    // Update particle position per frame
     partAcc.UpdateStep(glm::vec3(1, 0, 0), speed);
     player_mesh->position = player_mesh->particle->position;
     bulb_mesh->position = player_mesh->position - glm::vec3(75.f, -25.f, 0.f);
 
     // Detect Collisions
-    /*unsigned int index = 0;
-    for (int i = 0; i < asteroid_mesh->nTriangles;) {
-        Point p0 = asteroid_mesh->indices[static_cast<std::vector<glm::vec3, std::allocator<glm::vec3>>::size_type>(i) + 0];
-        Point p1 = asteroid_mesh->indices[static_cast<std::vector<glm::vec3, std::allocator<glm::vec3>>::size_type>(i) + 1];
-        Point p2 = asteroid_mesh->indices[static_cast<std::vector<glm::vec3, std::allocator<glm::vec3>>::size_type>(i) + 2];
-        
-        int result = Intersect(p0, p1, p2, boundingBox);
-        if (result > 0) {
-            std::cout << "Collision!" << std::endl;
-        }
-        i += 3;
-    }*/
+    
 
     for (int i = 0; i < meshArray.size(); i++) {
 
@@ -864,6 +912,16 @@ void Update() {
             glUniform1f(useRGBAColourLocation, (GLfloat)GL_FALSE);
         }
 
+        // Randomize cube positions post every x amount of frames
+        elapsed_frames++;
+        if (elapsed_frames > 2000) {
+            for (int j = 0; j < cubeMeshes.size(); j++) {
+                auto theMesh = cubeMeshes[j];
+                RandomizePositions(theMesh);
+            }
+            elapsed_frames = 0;
+        }
+
         sModelDrawInfo modelInfo;
         if (VAOMan->FindDrawInfoByModelName(meshArray[i]->meshName, modelInfo)) {
 
@@ -883,6 +941,9 @@ void Update() {
             currentMesh->drawBBox = false;
         }
     }
+
+    // Render the crosshair
+    crosshair.Update();
     
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -914,6 +975,12 @@ void Shutdown() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
+
+    window = nullptr;
+    delete window;
+
+    crosshair.Shutdown();
+
     exit(EXIT_SUCCESS);
 }
 
@@ -1164,7 +1231,6 @@ void ManageLights() {
     glUniform4f(DirectionLocation12, 1.f, 1.f, 1.f, 1.f);
     glUniform4f(Param1Location12, 0.f, 0.f, 0.f, 1.f); //x = Light Type
     glUniform4f(Param2Location12, 1.f, 0.f, 0.f, 1.f); //x = Light on/off
- 
 }
 
 //read scene description files
@@ -1231,6 +1297,27 @@ void ReadSceneDescription() {
         ::cameraEye.z = z;
     }
     File1.close();
+}
+
+float RandomFloat(float a, float b) {
+    float random = ((float)rand()) / (float)RAND_MAX;
+    float diff = b - a;
+    float r = random * diff;
+    return a + r;
+}
+
+bool RandomizePositions(MeshInfo* cube) {
+
+    int i = 0;
+    float x, y, z, w;
+
+    x = RandomFloat(-80, 80);
+    y = cube->position.y;
+    z = RandomFloat(-20, 20);
+
+    cube->position = glm::vec3(x, y, z);
+    
+    return true;
 }
 
 int main(int argc, char** argv) {

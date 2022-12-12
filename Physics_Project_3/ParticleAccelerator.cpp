@@ -27,6 +27,7 @@ void ParticleAccelerator::UpdateStep(glm::vec3 direction, float dt) {
 	/*for (int i = 0; i < numParticles; i++) {
 		particles[i]->ApplyForce(glm::vec3(0, -9.81f, 0));
 	}*/
+	glm::normalize(direction);
 	for (int i = 0; i < numParticles; i++) {
 		particles[i]->ApplyForce(direction * 5.f);
 	}

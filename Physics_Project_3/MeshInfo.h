@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>
 
-#include "AABB.h"
+#include "Primitives.h"
 #include "Particle.h"
 #include "cVAOManager/cVAOManager.h"
 
@@ -30,6 +30,7 @@ public:
 	bool isVisible;
 	bool drawBBox;
 	bool useRGBAColour;
+	bool teleport;
 
 	int nTriangles;
 	int nIndices;
@@ -42,4 +43,7 @@ public:
 
 	void CopyVertices(sModelDrawInfo model);
 	void CopyIndices(sModelDrawInfo model);
+
+	glm::vec3 min;
+	glm::vec3 max;
 };

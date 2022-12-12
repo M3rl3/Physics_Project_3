@@ -1,4 +1,4 @@
-#include "AABB.h"
+#include "Primitives.h"
 
 #include "OpenGL.h"
 #include "MeshInfo.h"

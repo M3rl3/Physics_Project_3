@@ -1,6 +1,5 @@
 #include "TestCollision.h"
 
-#include "AABB.h"
 #include <glm/glm.hpp>
 
 int TestAABBPlane(AABB b, Plane p)
@@ -176,3 +175,24 @@ int Intersect(Point p0, Point p1, Point p2, AABB aabb) {
     return TestAABBPlane(aabb, p);
 }
 
+int TestRayAABB(const Ray& ray, AABB b)
+{
+    for (int i = 0; i < 1000; i++)
+    {
+        glm::vec3 direction = ray.origin + ray.direction * glm::vec3(i * 0.1);
+
+        if (
+            direction.x >= b.min[0] &&
+            direction.x <= b.max[0] &&
+            direction.y >= b.min[1] &&
+            direction.y <= b.max[1] &&
+            direction.z >= b.min[2] &&
+            direction.z <= b.max[2]
+            )
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}

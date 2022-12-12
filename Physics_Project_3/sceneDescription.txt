@@ -1,4 +1,4 @@
-30
+36
 
 long_highway 
 position 0.0 -1.0 0.0
@@ -146,6 +146,36 @@ rotation 67.55 0.0 0.0
 scale 1.0
 
 cube
-position -68.0 1.5 0.0
+position 68.0 2 10.0
 rotation 0.0 0.0 0.0
-scale 3.0
+scale 4.0
+
+cube1
+position -55.0 2 5.0
+rotation 0.0 0.0 0.0
+scale 4.0
+
+cube2
+position 42.0 2 -3.0
+rotation 0.0 0.0 0.0
+scale 4.0
+
+cube3
+position 70.0 2 -9.0
+rotation 0.0 0.0 0.0
+scale 4.0
+
+cube4
+position -15.0 2 15.0
+rotation 0.0 0.0 0.0
+scale 4.0
+
+cube5
+position -8.0 2 8.0
+rotation 0.0 0.0 0.0
+scale 4.0
+
+cube6
+position 45.0 2 0.0
+rotation 0.0 0.0 0.0
+scale 4.0

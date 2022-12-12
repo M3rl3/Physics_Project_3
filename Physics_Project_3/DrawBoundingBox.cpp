@@ -2,7 +2,7 @@
 
 #include "OpenGL.h"
 #include "MeshInfo.h"
-#include "AABB.h"
+#include "Primitives.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -71,7 +71,7 @@ void draw_bbox(MeshInfo* mesh, unsigned int shaderID, glm::mat4 meshTransform) {
     // Uniform location of the model matrix from shader
     GLint modelLocaction = glGetUniformLocation(shaderID, "Model");
 
-    // Apply object's transformation matrix
+    // Apply the object's transformation matrix
     glm::mat4 model = meshTransform * transform;
     
     glUniformMatrix4fv(modelLocaction, 1, GL_FALSE, glm::value_ptr(model));

@@ -11,6 +11,7 @@ MeshInfo::MeshInfo() {
 	this->isVisible = true;
 	this->useRGBAColour = false;
 	this->drawBBox = false;
+	this->teleport = false;
 }
 
 MeshInfo::~MeshInfo() {
@@ -22,10 +23,20 @@ void MeshInfo::CopyVertices(sModelDrawInfo model) {
 	unsigned int numVertices = model.numberOfVertices;
 	std::vector <glm::vec3> vertices(numVertices);
 
+	min = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+	max = glm::vec3(FLT_MIN, FLT_MIN, FLT_MIN);
+
 	for (int i = 0; i < numVertices; i++) {
 		vertices[i].x = model.pVertices[i].x;
 		vertices[i].y = model.pVertices[i].y;
 		vertices[i].z = model.pVertices[i].z;
+
+		if (vertices[i].x < this->min.x) this->min.x = vertices[i].x;
+		if (vertices[i].x > this->max.x) this->max.x = vertices[i].x;
+		if (vertices[i].y < this->min.y) this->min.y = vertices[i].y;
+		if (vertices[i].y > this->max.y) this->max.y = vertices[i].y;
+		if (vertices[i].z < this->min.z) this->min.z = vertices[i].z;
+		if (vertices[i].z > this->max.z) this->max.z = vertices[i].z;
 	}
 	this->vertices = vertices;
 }

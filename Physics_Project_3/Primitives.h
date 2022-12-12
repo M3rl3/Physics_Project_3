@@ -19,6 +19,21 @@ struct Plane {
 	float d;
 };
 
+class Ray {
+public:
+	Ray(const glm::vec3& p, const glm::vec3& d)
+		: origin(p), direction(d) {
+
+		float m =
+			sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
+		direction.x /= m;
+		direction.y /= m;
+		direction.z /= m;
+	}
+	glm::vec3 origin;
+	glm::vec3 direction;
+};
+
 //void draw_bbox(MeshInfo* mesh, unsigned int shaderID, glm::mat4 meshTransform);
 
 float Max(float v1, float v2, float v3);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AABB.h"
+#include "Primitives.h"
 #include <glm/glm.hpp>
 
 typedef glm::vec3 Point;
