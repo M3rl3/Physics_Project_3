@@ -32,6 +32,7 @@ ParticleAccelerator partAcc;
 cRenderReticle crosshair;
 
 sModelDrawInfo player_obj;
+sModelDrawInfo cube_obj;
 
 MeshInfo* player_mesh;
 MeshInfo* cube_mesh;
@@ -349,9 +350,9 @@ void Initialize() {
     }
 
     const char* glsl_version = "#version 420";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWmonitor* currentMonitor = glfwGetPrimaryMonitor();
 
@@ -362,7 +363,7 @@ void Initialize() {
     glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-    window = glfwCreateWindow(1366, 768, "Physics 3", NULL, NULL);
+    window = glfwCreateWindow(1366, 768, "Physics-3", NULL, NULL);
 
     // Uncomment for fullscreen support based on current monitor
     // window = glfwCreateWindow(mode->height, mode->width, "Physics 3", currentMonitor, NULL);
@@ -420,8 +421,8 @@ void Render() {
     fragmentShader.fileName = "./shaders/fragmentShader.glsl";
 
     if (!shadyMan->createProgramFromFile("ShadyProgram", vertexShader, fragmentShader)) {
-        std::cerr << "Error: Shader program failed to compile." << std::endl;
-        std::cerr << shadyMan->getLastError();
+        std::cout << "Error: Shader program failed to compile." << std::endl;
+        std::cout << shadyMan->getLastError();
         return;
     }
     else {
@@ -867,6 +868,11 @@ void Update() {
         //cameraTarget = player_mesh->position;
         cameraEye = player_mesh->position - glm::vec3(1.f, -4.f, 0.f);
     }
+
+    /*for (int i = 0; i < cubeMeshes.size(); i++) {
+        auto currentCube = cubeMeshes[i];
+        currentCube->CopyVertices(cube_obj);
+    }*/
 
     // Update particle position per frame
     partAcc.UpdateStep(glm::vec3(1, 0, 0), speed);
