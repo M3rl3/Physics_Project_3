@@ -9,7 +9,7 @@ Particle::Particle(const glm::vec3& position) {
     this->velocity = glm::vec3(0.f);
     this->acceleration = glm::vec3(0.f);
     this->force = glm::vec3(0.f);
-    this->damping = .99f;
+    this->damping = .98f;
     this->mass = 1.f;
     this->inv_mass = 1.f;
     this->age = -1.f;

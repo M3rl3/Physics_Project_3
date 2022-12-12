@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+
 int TestAABBPlane(AABB b, Plane p)
 {
     // These two lines not necessary with a (Center, extents) AABB representation
@@ -195,4 +196,37 @@ int TestRayAABB(const Ray& ray, AABB b)
     }
 
     return 0;
+}
+
+bool CastRay(Ray ray, MeshInfo** mesh, std::vector<MeshInfo*> vecCubes) {
+
+    MeshInfo* closestMesh = nullptr;
+    float closestDistance = FLT_MAX;
+
+    for (int i = 0; i < vecCubes.size(); i++) {
+        auto currentCube = vecCubes[i];
+        float max[3] = {
+            currentCube->max.x + currentCube->position.x,
+            currentCube->max.y + currentCube->position.y,
+            currentCube->max.z + currentCube->position.z
+        };
+        float min[3] = {
+            currentCube->min.x + currentCube->position.x,
+            currentCube->min.y + currentCube->position.y,
+            currentCube->min.z + currentCube->position.z
+        };
+        AABB aabb(min, max);
+
+        if (TestRayAABB(ray, aabb)) {
+            float distance = glm::distance(ray.origin, currentCube->position);
+            if (closestDistance > distance)
+            {
+                closestMesh = currentCube;
+                closestDistance = distance;
+                std::cout << closestMesh->meshName;
+            }
+        }
+        *mesh = closestMesh;
+    }
+    return closestMesh != nullptr;
 }

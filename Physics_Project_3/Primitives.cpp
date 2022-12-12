@@ -7,6 +7,28 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+AABB::AABB(float min[3], float max[3]) {
+	memcpy(&(Min[0]), &(min[0]), 3 * sizeof(float));
+	memcpy(&(Max[0]), &(max[0]), 3 * sizeof(float));
+}
+
+AABB::~AABB() {
+
+}
+
+Ray::Ray(const glm::vec3& p, const glm::vec3& d)
+	: origin(p), direction(d) {
+
+	float m =
+		sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
+	direction.x /= m;
+	direction.y /= m;
+	direction.z /= m;
+}
+
+Ray::~Ray() {
+
+}
 
 float Max(float v1, float v2, float v3) {
 	if (v1 > v2 && v1 > v3) {

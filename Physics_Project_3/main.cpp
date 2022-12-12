@@ -37,8 +37,6 @@ MeshInfo* player_mesh;
 MeshInfo* cube_mesh;
 MeshInfo* bulb_mesh;
 
-AABB boundingBox;
-
 unsigned int readIndex = 0;
 int object_index = 0;
 int elapsed_frames = 0;
@@ -47,6 +45,7 @@ float speed = 0.f;
 
 bool wireFrame = false;
 bool doOnce = true;
+bool mouseClick = false;
 
 std::vector <std::string> meshFiles;
 std::vector <MeshInfo*> meshArray;
@@ -137,6 +136,14 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
         ReadSceneDescription();
         player_mesh->particle->position = player_mesh->position;
     }
+    if (key == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        mouseClick = true;
+        printf("Clicked\n");
+    }
+   /* if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        mouseClick = true;
+    }*/
+    else mouseClick = false;
     switch (theEditMode)
     {
         case MOVING_CAMERA:
@@ -287,6 +294,7 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
 }
 
 static void MouseCallBack(GLFWwindow* window, double xposition, double yposition) {
+
     if (firstMouse) {
         lastX = xposition;
         lastY = yposition;
@@ -294,7 +302,7 @@ static void MouseCallBack(GLFWwindow* window, double xposition, double yposition
     }
 
     float xoffset = xposition - lastX;
-    float yoffset = lastY - yposition;      // reversed since y coordinates go from bottom to up
+    float yoffset = lastY - yposition;  // reversed since y coordinates go from bottom to up
     lastX = xposition;
     lastY = yposition;
 
@@ -441,7 +449,9 @@ void Render() {
     long_highway_mesh->isWireframe = wireFrame;
     long_highway_mesh->RGBAColour = glm::vec4(15.f, 18.f, 13.f, 1.f);
     long_highway_mesh->useRGBAColour = true;
+    long_highway_mesh->drawBBox = true;
     meshArray.push_back(long_highway_mesh);
+    //long_highway_mesh->CopyVertices(long_highway);
     
     sModelDrawInfo bulb;
     LoadModel(meshFiles[0], bulb);
@@ -570,6 +580,7 @@ void Render() {
     long_sidewalk_mesh1->RGBAColour = glm::vec4(1.f, 5.f, 1.f, 1.f);
     long_sidewalk_mesh1->useRGBAColour = true;
     meshArray.push_back(long_sidewalk_mesh1);
+    //long_sidewalk_mesh1->CopyVertices(long_sidewalk);
     
     sModelDrawInfo lamp_post;
     LoadModel(meshFiles[5], lamp_post);
@@ -720,7 +731,7 @@ void Render() {
     cube_mesh->teleport = true;
     meshArray.push_back(cube_mesh);
     cubeMeshes.push_back(cube_mesh);
-    cube_mesh->CopyVertices(cube_obj);
+    //cube_mesh->CopyVertices(cube_obj);
 
     if (!VAOMan->LoadModelIntoVAO("cube1", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -734,7 +745,7 @@ void Render() {
     cube_mesh1->teleport = true;
     meshArray.push_back(cube_mesh1);
     cubeMeshes.push_back(cube_mesh1);
-    cube_mesh1->vertices = cube_mesh->vertices;
+    //cube_mesh1->vertices = cube_mesh->vertices;
      
     if (!VAOMan->LoadModelIntoVAO("cube2", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -748,7 +759,7 @@ void Render() {
     cube_mesh2->teleport = true;
     meshArray.push_back(cube_mesh2);
     cubeMeshes.push_back(cube_mesh2);
-    cube_mesh2->vertices = cube_mesh->vertices;
+    //cube_mesh2->vertices = cube_mesh->vertices;
     
     if (!VAOMan->LoadModelIntoVAO("cube3", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -762,7 +773,7 @@ void Render() {
     cube_mesh3->teleport = true;
     meshArray.push_back(cube_mesh3);
     cubeMeshes.push_back(cube_mesh3);
-    cube_mesh3->vertices = cube_mesh->vertices;
+    //cube_mesh3->vertices = cube_mesh->vertices;
     
     if (!VAOMan->LoadModelIntoVAO("cube4", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -776,7 +787,7 @@ void Render() {
     cube_mesh4->teleport = true;
     meshArray.push_back(cube_mesh4);
     cubeMeshes.push_back(cube_mesh4);
-    cube_mesh4->vertices = cube_mesh->vertices;
+    //cube_mesh4->vertices = cube_mesh->vertices;
     
     if (!VAOMan->LoadModelIntoVAO("cube5", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -790,7 +801,7 @@ void Render() {
     cube_mesh5->teleport = true;
     meshArray.push_back(cube_mesh5);
     cubeMeshes.push_back(cube_mesh5);
-    cube_mesh5->vertices = cube_mesh->vertices;
+    //cube_mesh5->vertices = cube_mesh->vertices;
     
     if (!VAOMan->LoadModelIntoVAO("cube6", cube_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
@@ -804,14 +815,18 @@ void Render() {
     cube_mesh6->teleport = true;
     meshArray.push_back(cube_mesh6);
     cubeMeshes.push_back(cube_mesh6);
-    cube_mesh6->vertices = cube_mesh->vertices;
+    //cube_mesh6->vertices = cube_mesh->vertices;
 
     // reads scene descripion files for positioning and other info
     ReadSceneDescription();
 
+    for (int i = 0; i < cubeMeshes.size(); i++) {
+        auto currentCube = cubeMeshes[i];
+        currentCube->CopyVertices(cube_obj);
+    }
+
     // initialize the particle to player position
     player_mesh->particle = partAcc.InitParticle(player_mesh->position);
-    
 }
 
 void Update() {
@@ -843,6 +858,8 @@ void Update() {
     //projection = glm::perspective(0.6f, ratio, 0.1f, 10000.f);
     projection = glm::perspective(glm::radians(fov), ratio, 0.1f, 10000.f);
 
+    glm::vec4 viewport = glm::vec4(0, 0, width, height);
+
     GLint eyeLocationLocation = glGetUniformLocation(shaderID, "eyeLocation");
     glUniform4f(eyeLocationLocation, cameraEye.x, cameraEye.y, cameraEye.z, 1.f);
 
@@ -856,8 +873,11 @@ void Update() {
     player_mesh->position = player_mesh->particle->position;
     bulb_mesh->position = player_mesh->position - glm::vec3(75.f, -25.f, 0.f);
 
-    // Detect Collisions
-    
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        mouseClick = true;
+        printf("Clicked");
+    }
+    else mouseClick = false;
 
     for (int i = 0; i < meshArray.size(); i++) {
 
@@ -920,6 +940,22 @@ void Update() {
                 RandomizePositions(theMesh);
             }
             elapsed_frames = 0;
+        }
+
+        glm::vec3 cursorPos;
+        // Division is expensive
+        cursorPos.x = width * 0.5;
+        cursorPos.y = height * 0.5;
+        glm::vec3 worldSpaceCoordinates = glm::unProject(cursorPos, view, projection, viewport);
+
+        Ray ray(cameraEye, worldSpaceCoordinates);
+        MeshInfo* mesh;
+
+        if (mouseClick) {
+            if (CastRay(ray, &mesh, cubeMeshes)) {
+                mesh->RGBAColour = glm::vec4(255.f, 255.f, 255.f, 1.f);
+                std::cout << "Mans ded" << std::endl;
+            }
         }
 
         sModelDrawInfo modelInfo;

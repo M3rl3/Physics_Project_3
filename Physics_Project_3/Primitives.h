@@ -6,11 +6,18 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
-struct AABB {
+class AABB {
+public:
+	AABB(float min[3], float max[3]);
+	~AABB();
+
 	glm::vec3 center;
 	glm::vec3 min;
 	glm::vec3 max;
 	glm::vec3 extents;
+
+	float Min[3];
+	float Max[3];
 };
 
 struct Plane {
@@ -21,15 +28,9 @@ struct Plane {
 
 class Ray {
 public:
-	Ray(const glm::vec3& p, const glm::vec3& d)
-		: origin(p), direction(d) {
+	Ray(const glm::vec3& p, const glm::vec3& d);
+	~Ray();
 
-		float m =
-			sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
-		direction.x /= m;
-		direction.y /= m;
-		direction.z /= m;
-	}
 	glm::vec3 origin;
 	glm::vec3 direction;
 };
