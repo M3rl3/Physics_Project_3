@@ -41,8 +41,10 @@ MeshInfo* bulb_mesh;
 unsigned int readIndex = 0;
 int object_index = 0;
 int elapsed_frames = 0;
+int mouse_hover = 0;
 float x, y, z, l = 1.f;
 float speed = 0.f;
+double seconds = 0.0;
 
 bool wireFrame = false;
 bool doOnce = true;
@@ -350,7 +352,7 @@ void Initialize() {
     }
 
     const char* glsl_version = "#version 420";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -819,7 +821,7 @@ void Render() {
     cube_mesh6->CopyVertices(cube_obj);
 
     sModelDrawInfo wall_obj;
-    LoadModel(meshFiles[9], wall_obj);
+    LoadModel(meshFiles[8], wall_obj);
     if (!VAOMan->LoadModelIntoVAO("wall", wall_obj, shaderID)) {
         std::cerr << "Could not load model into VAO" << std::endl;
     }
@@ -868,6 +870,8 @@ void Render() {
         currentCube->CopyVertices(cube_obj);
     }
 
+    seconds = glfwGetTime();
+
     // initialize the particle to player position
     player_mesh->particle = partAcc.InitParticle(player_mesh->position);
 }
@@ -899,7 +903,7 @@ void Update() {
 
     view = glm::lookAt(cameraEye, cameraEye + cameraTarget, upVector);
     //projection = glm::perspective(0.6f, ratio, 0.1f, 10000.f);
-    projection = glm::perspective(glm::radians(fov), ratio, 0.1f, 10000.f);
+    projection = glm::perspective(glm::radians(fov), ratio, 0.1f, 100000.f);
 
     glm::vec4 viewport = glm::vec4(0, 0, width, height);
 
@@ -907,7 +911,6 @@ void Update() {
     glUniform4f(eyeLocationLocation, cameraEye.x, cameraEye.y, cameraEye.z, 1.f);
 
     if (theEditMode == TAKE_CONTROL) {
-        //cameraTarget = player_mesh->position;
         cameraEye = player_mesh->position - glm::vec3(1.f, -4.f, 0.f);
     }
 
@@ -923,7 +926,6 @@ void Update() {
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         mouseClick = true;
-        printf("Clicked");
     }
     else mouseClick = false;
 
@@ -982,7 +984,7 @@ void Update() {
 
         // Randomize cube positions post every x amount of frames
         elapsed_frames++;
-        if (elapsed_frames > 2000) {
+        if (elapsed_frames > 5000) {
             for (int j = 0; j < cubeMeshes.size(); j++) {
                 auto theMesh = cubeMeshes[j];
                 RandomizePositions(theMesh);
@@ -994,15 +996,18 @@ void Update() {
         // Division is expensive
         cursorPos.x = width * 0.5;
         cursorPos.y = height * 0.5;
+
         glm::vec3 worldSpaceCoordinates = glm::unProject(cursorPos, view, projection, viewport);
+        
+        glm::normalize(worldSpaceCoordinates);
 
-        Ray ray(cameraEye, worldSpaceCoordinates);
+        Ray ray(worldSpaceCoordinates, cameraTarget);
         MeshInfo* mesh;
-
+        
         if (mouseClick) {
             if (CastRay(ray, &mesh, cubeMeshes)) {
                 mesh->RGBAColour = glm::vec4(255.f, 255.f, 255.f, 1.f);
-                std::cout << "Mans ded" << std::endl;
+                //std::cout << "Mans ded" << std::endl;
             }
         }
 

@@ -54,5 +54,4 @@ void Particle::KillAllForces() {
 void Particle::print() {
     std::cout << "\nPosition: (" << position.x << ", " << position.y << ", " << position.z << ") " << std::endl;
     std::cout << "\nVelocity: (" << velocity.x << ", " << velocity.y << ", " << velocity.z << ") " << std::endl;
-
 }

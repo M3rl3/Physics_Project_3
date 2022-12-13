@@ -178,23 +178,22 @@ int Intersect(Point p0, Point p1, Point p2, AABB aabb) {
 
 int TestRayAABB(const Ray& ray, AABB b)
 {
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 10000; i++)
     {
         glm::vec3 direction = ray.origin + ray.direction * glm::vec3(i * 0.1);
 
         if (
-            direction.x >= b.min[0] &&
-            direction.x <= b.max[0] &&
-            direction.y >= b.min[1] &&
-            direction.y <= b.max[1] &&
-            direction.z >= b.min[2] &&
-            direction.z <= b.max[2]
+            direction.x >= b.Min[0] &&
+            direction.x <= b.Max[0] &&
+            direction.y >= b.Min[1] &&
+            direction.y <= b.Max[1] &&
+            direction.z >= b.Min[2] &&
+            direction.z <= b.Max[2]
             )
         {
             return 1;
         }
     }
-
     return 0;
 }
 
@@ -215,18 +214,18 @@ bool CastRay(Ray ray, MeshInfo** mesh, std::vector<MeshInfo*> vecCubes) {
             currentCube->min.y + currentCube->position.y,
             currentCube->min.z + currentCube->position.z
         };
+
         AABB aabb(min, max);
 
         if (TestRayAABB(ray, aabb)) {
             float distance = glm::distance(ray.origin, currentCube->position);
+
             if (closestDistance > distance)
             {
                 closestMesh = currentCube;
                 closestDistance = distance;
-                std::cout << closestMesh->meshName;
             }
         }
-
         *mesh = closestMesh;
     }
     return closestMesh != nullptr;

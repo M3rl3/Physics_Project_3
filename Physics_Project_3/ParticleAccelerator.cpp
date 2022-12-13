@@ -37,5 +37,4 @@ void ParticleAccelerator::UpdateStep(glm::vec3 direction, float dt) {
 	for (int i = 0; i < numParticles; i++) {
 		particles[i]->KillAllForces();
 	}
-	
 }
